@@ -1,0 +1,47 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: webhook-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/webhook_db}
+    username: ${SPRING_DATASOURCE_USERNAME:flowguard}
+    password: ${SPRING_DATASOURCE_PASSWORD:flowguard123}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: ${SPRING_RABBITMQ_USERNAME:flowguard}
+    password: ${SPRING_RABBITMQ_PASSWORD:flowguard123}
+    connection-timeout: 60000
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 5000
+          max-attempts: 10
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+flowguard:
+  webhook:
+    skip-signature-validation: ${FLOWGUARD_WEBHOOK_SKIP_SIGNATURE_VALIDATION:false}
+    secret: ${GITHUB_WEBHOOK_SECRET:dev-secret}
+  rabbitmq:
+    exchange: flowguard.webhook.exchange
+    routing-key: pipeline.event
