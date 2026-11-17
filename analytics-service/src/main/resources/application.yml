@@ -1,0 +1,65 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: analytics-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/analytics_db}
+    username: ${SPRING_DATASOURCE_USERNAME:flowguard}
+    password: ${SPRING_DATASOURCE_PASSWORD:flowguard123}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: ${SPRING_RABBITMQ_USERNAME:flowguard}
+    password: ${SPRING_RABBITMQ_PASSWORD:flowguard123}
+    connection-timeout: 60000
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 5000
+          max-attempts: 10
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,circuitbreakers
+  endpoint:
+    health:
+      show-details: always
+
+pipeline:
+  service:
+    url: ${PIPELINE_SERVICE_URL:http://localhost:8082}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      pipelineServiceCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        registerHealthIndicator: true
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+flowguard:
+  regression:
+    warmup-runs: 10
+    regression-multiplier: 3.0
+    ema-alpha: 0.1
+  flakiness:
+    minimum-runs: 5
+    failure-rate-threshold: 0.20
+    max-window-size: 100
+    decay-factor: 0.9
