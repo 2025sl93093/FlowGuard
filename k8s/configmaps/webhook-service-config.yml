@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webhook-service-config
+  namespace: flowguard
+data:
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/webhook_db"
+  SPRING_RABBITMQ_HOST: "rabbitmq"
+  SERVER_PORT: "8081"
+  FLOWGUARD_WEBHOOK_SKIP_SIGNATURE_VALIDATION: "false"

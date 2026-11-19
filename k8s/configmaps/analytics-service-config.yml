@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: analytics-service-config
+  namespace: flowguard
+data:
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/analytics_db"
+  SPRING_RABBITMQ_HOST: "rabbitmq"
+  SERVER_PORT: "8083"
+  PIPELINE_SERVICE_URL: "http://pipeline-service:8082"

@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: flowguard
+data:
+  nginx.conf: |
+    events { worker_connections 1024; }
+    http {
+      upstream webhook-service  { server webhook-service:8081; }
+      upstream pipeline-service { server pipeline-service:8082; }
+      upstream analytics-service { server analytics-service:8083; }
+      upstream notification-service { server notification-service:8084; }
+
+      server {
+        listen 80;
+
+        location /api/webhooks/ {
+          proxy_pass http://webhook-service;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_request_buffering off;
+        }
+        location /api/pipelines/ {
+          proxy_pass http://pipeline-service;
+          proxy_set_header Host $host;
+        }
+        location /api/analytics/ {
+          proxy_pass http://analytics-service;
+          proxy_set_header Host $host;
+        }
+        location /api/notifications/ {
+          proxy_pass http://notification-service;
+          proxy_set_header Host $host;
+        }
+        location /health {
+          return 200 '{"status":"UP","service":"flowguard-gateway"}';
+          add_header Content-Type application/json;
+        }
+      }
+    }
