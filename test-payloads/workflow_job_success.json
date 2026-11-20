@@ -1,0 +1,32 @@
+{
+  "action": "completed",
+  "workflow_job": {
+    "id": 20001,
+    "run_id": 10001,
+    "name": "build-and-test",
+    "status": "completed",
+    "conclusion": "success",
+    "started_at": "2024-01-15T10:00:30Z",
+    "completed_at": "2024-01-15T10:01:30Z",
+    "head_branch": "main",
+    "steps": [
+      {
+        "number": 1,
+        "name": "Set up JDK 21",
+        "conclusion": "success",
+        "started_at": "2024-01-15T10:00:30Z",
+        "completed_at": "2024-01-15T10:00:45Z"
+      },
+      {
+        "number": 2,
+        "name": "Build with Maven",
+        "conclusion": "success",
+        "started_at": "2024-01-15T10:00:45Z",
+        "completed_at": "2024-01-15T10:01:30Z"
+      }
+    ]
+  },
+  "repository": {
+    "full_name": "demo-org/demo-repo"
+  }
+}
