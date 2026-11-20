@@ -1,29 +1,21 @@
-name: Build and Push Docker Images
+name: Build and Test
 
 on:
   push:
     branches: [ main ]
-    tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
 
-env:
-  REGISTRY: docker.io
-
 jobs:
-  build-and-push:
+  build-services:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         service:
-          - name: webhook-service
-            image: flowguard-webhook
-          - name: pipeline-service
-            image: flowguard-pipeline
-          - name: analytics-service
-            image: flowguard-analytics
-          - name: notification-service
-            image: flowguard-notification
+          - webhook-service
+          - pipeline-service
+          - analytics-service
+          - notification-service
 
     steps:
       - name: Checkout repository
@@ -36,34 +28,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build JAR for ${{ matrix.service.name }}
-        run: mvn clean package -DskipTests -f ${{ matrix.service.name }}/pom.xml
+      - name: Build JAR for ${{ matrix.service }}
+        run: mvn clean package -DskipTests -f ${{ matrix.service }}/pom.xml
 
-      - name: Log in to Docker Hub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service.image }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=ref,event=branch
-            type=sha,prefix=sha-
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./${{ matrix.service.name }}
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: Build Docker image for ${{ matrix.service }}
+        run: docker build -t flowguard/${{ matrix.service }}:latest ./${{ matrix.service }}
 
   build-dashboard:
     runs-on: ubuntu-latest
@@ -71,27 +40,5 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ secrets.DOCKER_HUB_USERNAME }}/flowguard-dashboard
-          tags: |
-            type=semver,pattern={{version}}
-            type=ref,event=branch
-            type=sha,prefix=sha-
-
-      - name: Build and push dashboard image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./dashboard
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: Build dashboard Docker image
+        run: docker build -t flowguard/dashboard:latest ./dashboard
