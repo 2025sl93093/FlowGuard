@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell
 
 function formatAgo(dateStr) {
   if (!dateStr) return '—'
-  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000)
+  const diff = Math.floor((Date.now() - new Date(dateStr + 'Z')) / 1000)
   if (diff < 60) return `${diff}s ago`
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
@@ -87,7 +87,11 @@ export default function Overview() {
           <tbody className="divide-y">
             {runs.slice(0, 10).map(run => (
               <tr key={run.id} className="hover:bg-gray-50">
-                <td className="px-4 py-2 font-mono text-xs">{run.repo}</td>
+                <td className="px-4 py-2 font-mono text-xs">
+                  <a href={`https://github.com/${run.repo}`} target="_blank" rel="noreferrer" className="hover:text-blue-600 hover:underline">
+                    {run.repo}
+                  </a>
+                </td>
                 <td className="px-4 py-2">{run.workflowName}</td>
                 <td className="px-4 py-2 text-xs">{run.headBranch}</td>
                 <td className="px-4 py-2">{formatDuration(run.durationSeconds)}</td>

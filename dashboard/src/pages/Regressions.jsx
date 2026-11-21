@@ -9,7 +9,7 @@ function formatDuration(secs) {
 
 function formatDate(str) {
   if (!str) return '—'
-  return new Date(str).toLocaleString()
+  return new Date(str + 'Z').toLocaleString()
 }
 
 export default function Regressions() {
@@ -41,7 +41,11 @@ export default function Regressions() {
             {data.map(r => (
               <tr key={r.id} className="hover:bg-red-50">
                 <td className="px-4 py-3 font-medium">{r.jobName}</td>
-                <td className="px-4 py-3 font-mono text-xs text-gray-500">{r.repo}</td>
+                <td className="px-4 py-3 font-mono text-xs text-gray-500">
+                  <a href={`https://github.com/${r.repo}`} target="_blank" rel="noreferrer" className="hover:text-blue-600 hover:underline">
+                    {r.repo}
+                  </a>
+                </td>
                 <td className="px-4 py-3 text-xs">{r.headBranch}</td>
                 <td className="px-4 py-3 text-green-700">{formatDuration(r.baselineSeconds)}</td>
                 <td className="px-4 py-3 text-red-700 font-medium">{formatDuration(r.observedSeconds)}</td>
