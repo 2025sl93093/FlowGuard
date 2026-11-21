@@ -67,7 +67,7 @@ export default function Notifications() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-xs text-gray-400">
-                  {n.sentAt ? new Date(n.sentAt).toLocaleString() : '—'}
+                  {n.sentAt ? new Date(n.sentAt + 'Z').toLocaleString() : '—'}
                 </td>
               </tr>
             ))}
