@@ -48,13 +48,22 @@ public class PipelineController {
             @RequestParam(required = false) String repo,
             @RequestParam(defaultValue = "main") String branch,
             @RequestParam(defaultValue = "50") int limit) {
-        return jobRepository.findByRepoAndJobNameAndHeadBranchOrderByCreatedAtDesc(
-                repo != null ? repo : "", jobName, branch, PageRequest.of(0, limit));
+        if (repo != null && !repo.isBlank()) {
+            return jobRepository.findByRepoAndJobNameAndHeadBranchOrderByCreatedAtDesc(
+                    repo, jobName, branch, PageRequest.of(0, limit));
+        }
+        return jobRepository.findByJobNameAndHeadBranchOrderByCreatedAtDesc(
+                jobName, branch, PageRequest.of(0, limit));
     }
 
     @GetMapping("/repos")
     public List<String> listRepos() {
-        return runRepository.findDistinctRepos();
+        List<String> repos = new java.util.ArrayList<>(runRepository.findDistinctRepos());
+        for (String r : jobRepository.findDistinctRepos()) {
+            if (!repos.contains(r)) repos.add(r);
+        }
+        java.util.Collections.sort(repos);
+        return repos;
     }
 
     @GetMapping("/health")
