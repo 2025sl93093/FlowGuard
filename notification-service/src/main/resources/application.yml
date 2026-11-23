@@ -57,6 +57,12 @@ management:
     mail:
       enabled: false
 
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
 notification:
   recipient:
     email: ${NOTIFICATION_RECIPIENT_EMAIL:test@gmail.com}

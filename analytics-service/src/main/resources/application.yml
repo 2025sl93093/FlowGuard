@@ -53,6 +53,12 @@ resilience4j:
         registerHealthIndicator: true
         automaticTransitionFromOpenToHalfOpenEnabled: true
 
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
 flowguard:
   regression:
     warmup-runs: 10
