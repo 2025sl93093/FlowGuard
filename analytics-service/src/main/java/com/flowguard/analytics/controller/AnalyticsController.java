@@ -63,8 +63,26 @@ public class AnalyticsController {
         return pipelineClient.getJobHistory(repo != null ? repo : "", jobName, branch);
     }
 
+    @GetMapping("/baseline")
+    public Map<String, Object> getBaseline(
+            @RequestParam String repo,
+            @RequestParam String jobName,
+            @RequestParam(defaultValue = "main") String branch) {
+        return baselineRepository.findByRepoAndJobNameAndHeadBranch(repo, jobName, branch)
+                .map(b -> Map.<String, Object>of(
+                        "baselineSeconds", b.getBaselineSeconds(),
+                        "sampleCount", b.getSampleCount()
+                ))
+                .orElse(Map.of());
+    }
+
     @GetMapping("/repos")
     public List<String> getRepos() {
         return pipelineClient.getRepos();
+    }
+
+    @GetMapping("/health")
+    public Map<String, String> health() {
+        return Map.of("status", "UP", "service", "analytics-service");
     }
 }

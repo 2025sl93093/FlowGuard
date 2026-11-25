@@ -20,6 +20,9 @@ export const fetchFlakyJobs = (repo) =>
 export const fetchJobHistory = (jobName, repo, branch = 'main') =>
   api.get(`/analytics/trends/${encodeURIComponent(jobName)}`, { params: { repo, branch } }).then(r => r.data)
 
+export const fetchJobBaseline = (repo, jobName, branch = 'main') =>
+  api.get('/analytics/baseline', { params: { repo, jobName, branch } }).then(r => r.data)
+
 export const fetchNotifications = (page = 0) =>
   api.get('/notifications', { params: { page, size: 20 } }).then(r => r.data)
 

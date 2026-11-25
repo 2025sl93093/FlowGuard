@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { fetchRepos, fetchJobHistory } from '../api/flowguardApi'
+import { fetchRepos, fetchJobHistory, fetchJobBaseline } from '../api/flowguardApi'
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine,
   CartesianGrid, ResponsiveContainer, Legend
@@ -15,7 +15,13 @@ function formatDuration(secs) {
 export default function JobTrends() {
   const [repo, setRepo] = useState('')
   const [jobName, setJobName] = useState('')
+  const [jobNameInput, setJobNameInput] = useState('')
   const [branch, setBranch] = useState('main')
+
+  useEffect(() => {
+    const t = setTimeout(() => setJobName(jobNameInput), 500)
+    return () => clearTimeout(t)
+  }, [jobNameInput])
 
   const { data: repos = [] } = useQuery({ queryKey: ['repos'], queryFn: fetchRepos })
 
@@ -25,14 +31,23 @@ export default function JobTrends() {
     enabled: !!jobName,
   })
 
+  const { data: baselineData } = useQuery({
+    queryKey: ['jobBaseline', repo, jobName, branch],
+    queryFn: () => fetchJobBaseline(repo, jobName, branch),
+    enabled: !!jobName && !!repo,
+  })
+
   const chartData = history.map((j, i) => ({
-    run: `#${j.runNumber ?? i + 1}`,
+    run: `#${j.runId ?? i + 1}`,
     duration: j.durationSeconds ?? 0,
+    conclusion: j.conclusion,
   })).reverse()
 
-  const avgBaseline = chartData.length > 0
-    ? Math.round(chartData.slice(0, Math.min(10, chartData.length)).reduce((s, r) => s + r.duration, 0) / Math.min(10, chartData.length))
-    : null
+  const avgBaseline = baselineData?.baselineSeconds
+    ? Math.round(baselineData.baselineSeconds)
+    : chartData.length > 0
+      ? Math.round(chartData.slice(0, Math.min(10, chartData.length)).reduce((s, r) => s + r.duration, 0) / Math.min(10, chartData.length))
+      : null
 
   return (
     <div className="space-y-6">
@@ -56,8 +71,8 @@ export default function JobTrends() {
             <input
               className="border rounded px-3 py-1.5 text-sm w-48"
               placeholder="e.g. build-and-test"
-              value={jobName}
-              onChange={e => setJobName(e.target.value)}
+              value={jobNameInput}
+              onChange={e => setJobNameInput(e.target.value)}
             />
           </div>
           <div>
@@ -84,7 +99,7 @@ export default function JobTrends() {
                 <Legend />
                 {avgBaseline && (
                   <ReferenceLine y={avgBaseline} stroke="#f59e0b" strokeDasharray="5 5"
-                    label={{ value: `Baseline ~${formatDuration(avgBaseline)}`, position: 'insideTopRight', fontSize: 11 }} />
+                    label={{ value: `Baseline ~${formatDuration(avgBaseline)}${baselineData?.sampleCount ? ` (${baselineData.sampleCount} runs)` : ''}`, position: 'insideTopRight', fontSize: 11 }} />
                 )}
                 <Line type="monotone" dataKey="duration" stroke="#6366f1" strokeWidth={2}
                   dot={{ r: 3 }} activeDot={{ r: 5 }} name="Duration (s)" />
